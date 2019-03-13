@@ -56,7 +56,7 @@ set(MIPUTILSRC MIPSDK/C/Utilities/Source)
 # contains both .c and .h files
 # set(MIPUSR "MIPSDK/C/Library/User\ Functions")
 #include_directories(include ${MIPLIBINC} ${MIPUTILINC} ${MIPUSR})
-include_directories(include/${PROJECT_NAME} ${MIPLIBINC} ${MIPUTILINC} ${catkin_INCLUDE_DIRS})
+include_directories(include/${PROJECT_NAME} ${MIPLIBINC} ${MIPUTILINC} ${catkin_INCLUDE_DIRS} debian)
 
 set(MIPINC
   ${MIPLIBINC}/mip.h

@@ -592,21 +592,39 @@ namespace Microstrain
 		    //For little-endian targets, byteswap the data field
 		    mip_filter_ned_velocity_byteswap(&curr_filter_vel_);
       
-		    // rotate velocities from NED to sensor coordinates
-		    // Constructor takes x, y, z , w
-		    tf2::Quaternion nav_quat(curr_filter_quaternion_.q[2],
-					     curr_filter_quaternion_.q[1],
-					     -1.0*curr_filter_quaternion_.q[3],
-					     curr_filter_quaternion_.q[0]);
-					     
-		    tf2::Vector3 vel_enu(curr_filter_vel_.east,
-					 curr_filter_vel_.north,
-					 -1.0*curr_filter_vel_.down);
-		    tf2::Vector3 vel_in_sensor_frame = tf2::quatRotate(nav_quat.inverse(),vel_enu);
-		      
-		    nav_msg_.twist.twist.linear.x = vel_in_sensor_frame[0]; //curr_filter_vel_.east;
-		    nav_msg_.twist.twist.linear.y =  vel_in_sensor_frame[1]; //curr_filter_vel_.north;
-		    nav_msg_.twist.twist.linear.z =  vel_in_sensor_frame[2]; //-1*curr_filter_vel_.down;
+//            // rotate velocities from NED to sensor coordinates
+//		    // Constructor takes x, y, z , w
+//		    tf2::Quaternion nav_quat(curr_filter_quaternion_.q[2],
+//					     curr_filter_quaternion_.q[1],
+//					     -1.0*curr_filter_quaternion_.q[3],
+//					     curr_filter_quaternion_.q[0]);
+
+//		    tf2::Vector3 vel_enu(curr_filter_vel_.east,
+//					 curr_filter_vel_.north,
+//					 -1.0*curr_filter_vel_.down);
+//		    tf2::Vector3 vel_in_sensor_frame = tf2::quatRotate(nav_quat.inverse(),vel_enu);
+
+//		    nav_msg_.twist.twist.linear.x = vel_in_sensor_frame[0]; //curr_filter_vel_.east;
+//		    nav_msg_.twist.twist.linear.y =  vel_in_sensor_frame[1]; //curr_filter_vel_.north;
+//		    nav_msg_.twist.twist.linear.z =  vel_in_sensor_frame[2]; //-1*curr_filter_vel_.down;
+
+
+
+            // rotate velocities from NED to sensor coordinates
+            // Constructor takes x, y, z , w
+            tf2::Quaternion nav_quat(curr_filter_quaternion_.q[1],
+                         curr_filter_quaternion_.q[2],
+                         curr_filter_quaternion_.q[3],
+                         curr_filter_quaternion_.q[0]);
+
+            tf2::Vector3 vel_ned(curr_filter_vel_.north,
+                                 curr_filter_vel_.east,
+                                 curr_filter_vel_.down);
+            tf2::Vector3 vel_in_sensor_frame = tf2::quatRotate(nav_quat.inverse(),vel_ned);
+
+            nav_msg_.twist.twist.linear.x = vel_in_sensor_frame[0]; //curr_filter_vel_.north;
+            nav_msg_.twist.twist.linear.y =  vel_in_sensor_frame[1]; //curr_filter_vel_.east;
+            nav_msg_.twist.twist.linear.z =  vel_in_sensor_frame[2]; //curr_filter_vel_.down;
 		  }break;
 
 		  ///
@@ -630,11 +648,20 @@ namespace Microstrain
 		    //For little-endian targets, byteswap the data field
 		    mip_filter_attitude_quaternion_byteswap(&curr_filter_quaternion_);
 
-		    // put into ENU - swap X/Y, invert Z
-		    nav_msg_.pose.pose.orientation.x = curr_filter_quaternion_.q[2];
-		    nav_msg_.pose.pose.orientation.y = curr_filter_quaternion_.q[1];
-		    nav_msg_.pose.pose.orientation.z = -1.0*curr_filter_quaternion_.q[3];
-		    nav_msg_.pose.pose.orientation.w = curr_filter_quaternion_.q[0];
+//            // put into ENU - swap X/Y, invert Z
+//		    nav_msg_.pose.pose.orientation.x = curr_filter_quaternion_.q[2];
+//		    nav_msg_.pose.pose.orientation.y = curr_filter_quaternion_.q[1];
+//		    nav_msg_.pose.pose.orientation.z = -1.0*curr_filter_quaternion_.q[3];
+//		    nav_msg_.pose.pose.orientation.w = curr_filter_quaternion_.q[0];
+
+
+
+            // put into NED
+            nav_msg_.pose.pose.orientation.x = curr_filter_quaternion_.q[1];
+            nav_msg_.pose.pose.orientation.y = curr_filter_quaternion_.q[2];
+            nav_msg_.pose.pose.orientation.z = curr_filter_quaternion_.q[3];
+            nav_msg_.pose.pose.orientation.w = curr_filter_quaternion_.q[0];
+
 
 		  }break;
 
@@ -662,9 +689,15 @@ namespace Microstrain
 		    mip_filter_llh_pos_uncertainty_byteswap(&curr_filter_pos_uncertainty_);
 
 		    //x-axis
-		    nav_msg_.pose.covariance[0] = curr_filter_pos_uncertainty_.east*curr_filter_pos_uncertainty_.east;
-		    nav_msg_.pose.covariance[7] = curr_filter_pos_uncertainty_.north*curr_filter_pos_uncertainty_.north;
-		    nav_msg_.pose.covariance[14] = curr_filter_pos_uncertainty_.down*curr_filter_pos_uncertainty_.down;
+//            nav_msg_.pose.covariance[0] = curr_filter_pos_uncertainty_.east*curr_filter_pos_uncertainty_.east;
+//		    nav_msg_.pose.covariance[7] = curr_filter_pos_uncertainty_.north*curr_filter_pos_uncertainty_.north;
+//		    nav_msg_.pose.covariance[14] = curr_filter_pos_uncertainty_.down*curr_filter_pos_uncertainty_.down;
+
+
+
+            nav_msg_.pose.covariance[0] = curr_filter_pos_uncertainty_.north*curr_filter_pos_uncertainty_.north;
+            nav_msg_.pose.covariance[7] = curr_filter_pos_uncertainty_.east*curr_filter_pos_uncertainty_.east;
+            nav_msg_.pose.covariance[14] = curr_filter_pos_uncertainty_.down*curr_filter_pos_uncertainty_.down;
 		  }break;
 
 		  // Velocity Uncertainty
@@ -675,9 +708,15 @@ namespace Microstrain
 		    //For little-endian targets, byteswap the data field
 		    mip_filter_ned_vel_uncertainty_byteswap(&curr_filter_vel_uncertainty_);
       
-		    nav_msg_.twist.covariance[0] = curr_filter_vel_uncertainty_.east*curr_filter_vel_uncertainty_.east;
-		    nav_msg_.twist.covariance[7] = curr_filter_vel_uncertainty_.north*curr_filter_vel_uncertainty_.north;
-		    nav_msg_.twist.covariance[14] = curr_filter_vel_uncertainty_.down*curr_filter_vel_uncertainty_.down;
+//            nav_msg_.twist.covariance[0] = curr_filter_vel_uncertainty_.east*curr_filter_vel_uncertainty_.east;
+//		    nav_msg_.twist.covariance[7] = curr_filter_vel_uncertainty_.north*curr_filter_vel_uncertainty_.north;
+//		    nav_msg_.twist.covariance[14] = curr_filter_vel_uncertainty_.down*curr_filter_vel_uncertainty_.down;
+
+
+
+            nav_msg_.twist.covariance[0] = curr_filter_vel_uncertainty_.north*curr_filter_vel_uncertainty_.north;
+            nav_msg_.twist.covariance[7] = curr_filter_vel_uncertainty_.east*curr_filter_vel_uncertainty_.east;
+            nav_msg_.twist.covariance[14] = curr_filter_vel_uncertainty_.down*curr_filter_vel_uncertainty_.down;
 
 		  }break;
 
@@ -845,11 +884,19 @@ namespace Microstrain
 
 		    //For little-endian targets, byteswap the data field
 		    mip_ahrs_quaternion_byteswap(&curr_ahrs_quaternion_);
-		    // put into ENU - swap X/Y, invert Z
-		    imu_msg_.orientation.x = curr_ahrs_quaternion_.q[2];
-		    imu_msg_.orientation.y = curr_ahrs_quaternion_.q[1];
-		    imu_msg_.orientation.z = -1.0*curr_ahrs_quaternion_.q[3];
-		    imu_msg_.orientation.w = curr_ahrs_quaternion_.q[0];
+//            // put into ENU - swap X/Y, invert Z
+//		    imu_msg_.orientation.x = curr_ahrs_quaternion_.q[2];
+//		    imu_msg_.orientation.y = curr_ahrs_quaternion_.q[1];
+//		    imu_msg_.orientation.z = -1.0*curr_ahrs_quaternion_.q[3];
+//		    imu_msg_.orientation.w = curr_ahrs_quaternion_.q[0];
+
+
+
+            // put into NED
+            imu_msg_.orientation.x = curr_ahrs_quaternion_.q[1];
+            imu_msg_.orientation.y = curr_ahrs_quaternion_.q[2];
+            imu_msg_.orientation.z = curr_ahrs_quaternion_.q[3];
+            imu_msg_.orientation.w = curr_ahrs_quaternion_.q[0];
 
 		  }break;
 

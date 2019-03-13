@@ -320,3 +320,10 @@ HEADERS += \
     MIPSDK/C/Library/User Functions/mip_sdk_user_functions.h \
     MIPSDK/C/Utilities/Include/byteswap_utilities.h \
     src/mip_sdk_user_functions.c.orig
+
+INCLUDEPATH += \
+    /opt/ros/kinetic/include \
+    ./include/microstrain_3dm_gx5_45
+
+DEPENDPATH += \
+    /opt/ros/kinetic/lib
